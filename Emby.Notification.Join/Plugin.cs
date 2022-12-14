@@ -5,18 +5,53 @@ using System.Net;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.Serialization;
-using Emby.Notification.Join.Configuration;
 using MediaBrowser.Model.Plugins;
+using System.IO;
+using MediaBrowser.Model.Drawing;
 
 namespace Emby.Notification.Join
 {
-    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
+    public class Plugin : BasePlugin, IHasWebPages, IHasThumbImage, IHasTranslations
     {
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
-            : base(applicationPaths, xmlSerializer)
+        private const string EditorJsName = "joinnotificationeditorjs";
+
+        public IEnumerable<PluginPageInfo> GetPages()
         {
-            Instance = this;
+            return new[]
+            {
+                new PluginPageInfo
+                {
+                    Name = EditorJsName,
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.entryeditor.js"
+                },
+                new PluginPageInfo
+                {
+                    Name = "joineditortemplate",
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.entryeditor.template.html",
+                    IsMainConfigPage = false
+                }
+            };
         }
+
+        public string NotificationSetupModuleUrl => GetPluginPageUrl(EditorJsName);
+
+        public TranslationInfo[] GetTranslations()
+        {
+            var basePath = GetType().Namespace + ".strings.";
+
+            return GetType()
+                .Assembly
+                .GetManifestResourceNames()
+                .Where(i => i.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
+                .Select(i => new TranslationInfo
+                {
+                    Locale = Path.GetFileNameWithoutExtension(i.Substring(basePath.Length)),
+                    EmbeddedResourcePath = i
+
+                }).ToArray();
+        }
+
+        public static string StaticName = "Join";
 
         /// <summary>
         /// Gets the name of the plugin
@@ -24,7 +59,7 @@ namespace Emby.Notification.Join
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Join Notifications"; }
+            get { return StaticName + " Notifications"; }
         }
 
         /// <summary>
@@ -45,42 +80,18 @@ namespace Emby.Notification.Join
             get { return _id; }
         }
 
-        public Uri IconURL
+        public Stream GetThumbImage()
         {
-            get { return new Uri("https://raw.githubusercontent.com/MediaBrowser/Emby.Resources/master/images/Logos/logoicon.png");  }
+            var type = GetType();
+            return type.Assembly.GetManifestResourceStream(type.Namespace + ".thumb.png");
         }
 
-        public string ApiV1Endpoint
+        public ImageFormat ThumbImageFormat
         {
-            get { return "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush";  }
-        }
-
-        public string ToQueryString(Dictionary<string, string> variables)
-        {
-            var array = (from KeyValuePair<string,string> pair in variables
-                         select string.Format("{0}={1}", WebUtility.UrlEncode(pair.Key), WebUtility.UrlEncode(pair.Value)))
-                .ToArray();
-            return "?" + string.Join("&", array);
-        }
-
-        public IEnumerable<PluginPageInfo> GetPages()
-        {
-
-            return new[]
+            get
             {
-                new PluginPageInfo
-                {
-                    Name = Name,
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.config.html"
-
-                }
-            };
+                return ImageFormat.Png;
+            }
         }
-
-        /// <summary>
-        /// Gets the instance.
-        /// </summary>
-        /// <value>The instance.</value>
-        public static Plugin Instance { get; private set; }
     }
 }

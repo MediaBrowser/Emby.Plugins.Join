@@ -1,0 +1,26 @@
+﻿<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtFriendlyName" required="required" label="${LabelName}" />
+    <div class="fieldDescription">${FriendlyNameForReferenceHelp}</div>
+</div>
+
+<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtJoinApiKey" required="required" label="Join API Key" />
+    <div class="fieldDescription">
+        API Key
+    </div>
+</div>
+<div class="inputContainer">
+    <input is="emby-input" type="text" class="txtJoinDeviceId" required="required" label="Device ID" />
+    <div class="fieldDescription">
+        Specify the device id or the group id to notify. Multiple devices can be specified by using commmas to seperate (e.g. "group.chrome,group.phone"). Valid Group IDs:
+        <ul>
+            <li>group.all</li>
+            <li>group.android</li>
+            <li>group.chrome</li>
+            <li>group.windows10</li>
+            <li>group.phone</li>
+            <li>group.tablet</li>
+            <li>group.pc</li>
+        </ul>
+    </div>
+</div>
